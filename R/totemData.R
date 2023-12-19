@@ -46,6 +46,7 @@ setValidity(
   }
 )
 
+
 #' totemData object and constructors
 #'
 #' \code{totemData} is used to store the TOTEM representation

@@ -14,10 +14,28 @@ iProjection(totemData, design, reference = NULL)
 \item{design}{a \code{formula}, expresses how the target (left hand side) should depend
 on attributes (right hand side).}
 
-\item{reference}{reference distribution (default: uniform distribution)}
+\item{reference}{numeric vector, reference distribution (default: uniform distribution).}
 }
 \description{
 The \code{iProjection} class represents an \eqn{i}-projection from a reference distribution.
+}
+\details{
+The parameter 'design' (\code{formula} object) encodes the relationships between the attributes. The operators
+\enumerate{
+  \item '|' denote independence, e.g. \code{design = ~ x | y}  signifies \eqn{p(x,y) = p(x)\cdotp(y)}.
+  \item '&' denote dependence of the left and right hand side, e.g. \code{design = ~ x & y} signifies that \eqn{p(x,y)}
+  cannot be necessarily factorized.
+}
+The typical operator precedence are used, i.e. '&' before '|'. By using brackets, attributes can be grouped,
+e.g. \code{design = ~ x & (y | z)} signifies \eqn{p(x,y,z) = p(x|y,z)\cdot p(y)\cdot p(z)}.
+
+
+It is also possible to use the \code{mean()} function to calculate (numerical) expected values. e.g \code{design = ~ mean(x) & y},
+which signifies that the mean of \eqn{x} depends on \eqn{y}.
+
+Finally, it is possible to calculate new attributes, e.g. \code{design = ~ mean(x/y^2) & z}, which signifies that that the mean
+of \eqn{\frac{x}{y^2}} depends on \eqn{y}, or higher central moments, e.g. \code{design = ~ mean((x - mean(x))^2) |z}, which signifies that the 2nd
+central moment of \eqn{x} (the variance) is indpendent of \eqn{z}
 }
 \section{Slots}{
 

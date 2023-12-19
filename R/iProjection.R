@@ -98,6 +98,24 @@ setValidity(
 #' on attributes (right hand side).
 #' @param reference numeric vector, reference distribution (default: uniform distribution).
 #'
+#' @details The parameter 'design' (\code{formula} object) encodes the relationships between the attributes. The operators
+#' \enumerate{
+#'   \item '|' denote independence, e.g. \code{design = ~ x | y}  signifies \eqn{p(x,y) = p(x)\cdotp(y)}.
+#'   \item '&' denote dependence of the left and right hand side, e.g. \code{design = ~ x & y} signifies that \eqn{p(x,y)}
+#'   cannot be necessarily factorized.
+#' }
+#' The typical operator precedence are used, i.e. '&' before '|'. By using brackets, attributes can be grouped,
+#' e.g. \code{design = ~ x & (y | z)} signifies \eqn{p(x,y,z) = p(x|y,z)\cdot p(y)\cdot p(z)}.
+#'
+#'
+#' It is also possible to use the \code{mean()} function to calculate (numerical) expected values. e.g \code{design = ~ mean(x) & y},
+#' which signifies that the mean of \eqn{x} depends on \eqn{y}.
+#'
+#' Finally, it is possible to calculate new attributes, e.g. \code{design = ~ mean(x/y^2) & z}, which signifies that that the mean
+#' of \eqn{\frac{x}{y^2}} depends on \eqn{y}, or higher central moments, e.g. \code{design = ~ mean((x - mean(x))^2) |z}, which signifies that the 2nd
+#' central moment of \eqn{x} (the variance) is indpendent of \eqn{z}
+#'
+#'
 #' @aliases iProjection-class
 #' @rdname iProjection
 #' @author Orestis Loukas & Ho Ryun Chung
@@ -121,13 +139,15 @@ iProjection <- function(totemData, design, reference = NULL){
   if (! is(design, "formula")){
     stop("'design' must be a formula")
   } else{
-    if (design[[1]] != "~"){
-      stop("the formula in 'design' must start with '~'.")
-    }
+
     designVars <- all.vars(design)
     if (! all(designVars %in% colnames(data(totemData)))){
       stop("All attributes in design formula must be columns in the 'data' slot of the totemData object")
     }
+    if (design[[1]] != "~"){
+      stop("'design' must start with '~'")
+    }
+
     ## construct conditionMatrix from the design formula
     ## we need to parse the formula
     ## ~ x + group, x and group are independent
@@ -135,6 +155,8 @@ iProjection <- function(totemData, design, reference = NULL){
     ##
     ## ~ x + group + mean(x):group, x and group are dependent
     ## conditions: marginal x, marginal group, mean x|group
+    deparsedFormula <- deparseFormula(design)
+
 
 
 
@@ -144,42 +166,15 @@ iProjection <- function(totemData, design, reference = NULL){
 
 }
 
-formulaToCondition <- function(form){
-  ast_tree(form)
 
-}
-ast_tree <- function(x, layout = box_chars()) {
-  if (is_quosure(x)) {
-    x <- quo_squash(x)
-  }
-
-  # base cases
+deparseFormula <- function(x){
   if (rlang::is_syntactic_literal(x)) {
-    return(paste0("SL", x))
-  } else if (is_symbol(x)) {
-    return(paste0("S", x))
-  } else if (!is.pairlist(x) && !is.call(x)) {
-    return(paste0("<inline ", paste0(class(x), collapse = "/"), ">"))
-  }
-
-  # recursive case
-  subtrees <- lapply(x, ast_tree, layout = layout)
-  subtrees <- name_subtree(subtrees)
-
-  subtrees
-}
-name_subtree <- function(x) {
-  nm <- names(x)
-  if (is.null(nm))
     return(x)
+  } else if (is_symbol(x)) {
+    return(x)
+  }
+  lapply(x, deparseFormula)
 
-  has_name <- nm != ""
-  label <- paste0(crayon::italic(grey(nm)), " = ")
-  indent <- str_dup(" ", nchar(nm) + 3)
-
-  x[has_name] <- Map(str_indent, x[has_name], label[has_name], indent[has_name])
-  x
 }
-
 
 

@@ -6,10 +6,12 @@
 \alias{totemDataFromDataFrame}
 \title{totemData object and constructors}
 \usage{
-totemDataFromDataFrame(df)
+totemDataFromDataFrame(df, dropUnseen = TRUE)
 }
 \arguments{
-\item{df}{a 'data.frame' object with the subjects in the rows and their attributes in the columns}
+\item{df}{a 'data.frame' object with the subjects in the rows and their attributes in the columns.}
+
+\item{dropUnseen}{logical, drop unseen attribute combinations (default: TRUE).}
 }
 \value{
 A totemData object
@@ -25,3 +27,6 @@ A totemData object
 \item{\code{iProjections}}{a 'list' of iProjections}
 }}
 
+\author{
+Orestis Loukas & Ho Ryun Chung
+}
